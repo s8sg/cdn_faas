@@ -1,0 +1,11 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  # Gateway to handle the UI and API request
+  file-handler:
+    skip_build: true
+    lang: Dockerfile
+    handler: ./file_handler
+    image: s8sg/file-handler
