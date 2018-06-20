@@ -7,7 +7,8 @@ if ! [ -x "$(command -v docker)" ]; then
 fi
 
 echo "Building FaaS for File handling"
-docker build -t s8sg/file-handler file_handler/
+#docker build -t s8sg/file-handler file_handler/
+faas-cli build -f stack.yml
 
 echo "Creating Docker Network func_functions if not exist"
 [ ! "$(docker network ls | grep func_functions)" ] && docker network create -d overlay --attachable func_functions

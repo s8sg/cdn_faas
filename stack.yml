@@ -5,7 +5,11 @@ provider:
 functions:
   # Gateway to handle the UI and API request
   file-handler:
-    skip_build: true
-    lang: Dockerfile
+    lang: dockerfile
     handler: ./file_handler
-    image: s8sg/file-handler
+    image: s8sg/file-handler:latest
+
+  image-resizer:
+    lang: dockerfile
+    handler: ./ResizeImage
+    image: s8sg/resizer:latest
