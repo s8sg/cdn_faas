@@ -21,7 +21,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile("uploadfile")
 	if err != nil {
 		log.Printf("failed to upload, error %v", err)
-		http.Error(w, "{\"error\":\"Couldn't get fie from request\"}", http.StatusInternalServerError)
+		http.Error(w, "{\"error\":\"Couldn't get file from request\"}", http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
@@ -34,6 +34,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 	io.Copy(f, file)
+	log.Printf("File %s saved on the directory", handler.Filename)
 }
 
 func main() {

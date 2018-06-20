@@ -1,6 +1,6 @@
 #!/bin/bash
 
 echo "Remove CDN Services"
-docker stack rm cdn
+docker service rm cdn_cache
 echo "Remove FaaS functions"
 faas-cli rm -f stack.yml 
