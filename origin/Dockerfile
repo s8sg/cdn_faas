@@ -4,7 +4,7 @@ RUN curl -sL https://github.com/alexellis/license-check/releases/download/0.2.2/
       > /usr/bin/license-check \
       && chmod +x /usr/bin/license-check
 
-WORKDIR /go/src/github.com/dailyiot/dailyiot/gateway
+WORKDIR /go/src/github.com/s8sg/nginx_faas/origin
 
 COPY main.go        .
 
@@ -16,6 +16,6 @@ RUN test -z "$(gofmt -l $(find . -type f -name '*.go' -not -path "./vendor/*"))"
 FROM       scratch
 MAINTAINER s8sg <swarvanusg@gmail.com>
 
-COPY       --from=build /go/src/github.com/dailyiot/dailyiot/gateway/server tc-tiny-go-ws
+COPY       --from=build /go/src/github.com/s8sg/nginx_faas/origin/server tc-tiny-go-ws
 EXPOSE     8080
 ENTRYPOINT ["/tc-tiny-go-ws"]

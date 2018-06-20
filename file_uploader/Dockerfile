@@ -1,6 +1,6 @@
 FROM golang:1.9.4 as build
   
-WORKDIR /go/src/github.com/s8sg/nginx_faas/file_handler
+WORKDIR /go/src/github.com/s8sg/nginx_faas/file_uploader
 
 COPY server.go      .
 
@@ -20,7 +20,7 @@ EXPOSE 8080
 ENV http_proxy      ""
 ENV https_proxy     ""
 
-COPY --from=build /go/src/github.com/s8sg/nginx_faas/file_handler/server    .
+COPY --from=build /go/src/github.com/s8sg/nginx_faas/file_uploader/server    .
 
 RUN chown -R app:app ./
 

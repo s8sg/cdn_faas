@@ -6,15 +6,16 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
-	"os"
 	"path/filepath"
 )
 
 const (
-	jsonType   = "application/json"
-	resizerURL = "http://image-resizer:8080"
-	homeDIR    = "/home/app/"
+	jsonType    = "application/json"
+	resizerURL  = "http://image-resizer:8080"
+	uploaderURL = "http://file-uploader:8080"
+	homeDIR     = "/home/app/"
 )
 
 var (
@@ -23,8 +24,52 @@ var (
 	}
 )
 
-// upload logic
-func upload(w http.ResponseWriter, r *http.Request) {
+// file upload logic
+func Upload(client *http.Client, url string, filename string, r io.Reader) (err error) {
+	// Prepare a form that you will submit to that URL.
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	var fw io.Writer
+
+	if x, ok := r.(io.Closer); ok {
+		defer x.Close()
+	}
+	// Add an image file
+	if fw, err = w.CreateFormFile("file", filename); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, r); err != nil {
+		return err
+	}
+
+	// Don't forget to close the multipart writer.
+	// If you don't close it, your request will be missing the terminating boundary.
+	w.Close()
+
+	// Now that you have a form, you can submit it to your handler.
+	req, err := http.NewRequest("POST", url, &b)
+	if err != nil {
+		return
+	}
+	// Don't forget to set the content type, this will contain the boundary.
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	// Submit the request
+	res, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	// Check the response
+	if res.StatusCode != http.StatusOK {
+		err = fmt.Errorf("bad status: %s", res.Status)
+	}
+	return
+}
+
+// file handle logic
+func handle(w http.ResponseWriter, r *http.Request) {
 
 	defer w.Header().Set("Content-Type", jsonType)
 
@@ -73,32 +118,21 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*
-		resizedData, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Printf("failed to read resized file %s, error %v", filename, resizedData)
-			http.Error(w, fmt.Sprintf("failed to resize file %s", filename), http.StatusInternalServerError)
-			return
-		}*/
-
-	// Save the file locally
-	filePath := homeDIR + filename
-	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+	// send the file to file uploader
+	client = &http.Client{}
+	err = Upload(client, uploaderURL, filename, resp.Body)
 	if err != nil {
-		log.Printf("failed to upload, error %v", err)
-		http.Error(w, "{\"error\":\"Couldn't write file\"}", http.StatusInternalServerError)
+		log.Printf("failed to send resized image to uploader, error %v", err)
+		http.Error(w, fmt.Sprintf("failed to upload file %s", filename), http.StatusInternalServerError)
 		return
 	}
-	defer f.Close()
-	io.Copy(f, resp.Body)
-	log.Printf("Resized file saved on the local directory as %s", filePath)
 
-	w.Write([]byte(fmt.Sprintf("File successfully saved on the local directory as %s", filePath)))
+	w.Write([]byte("Resized file successfully uploaded to uploader"))
 }
 
 func main() {
 
-	http.HandleFunc("/", upload)
+	http.HandleFunc("/", handle)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
