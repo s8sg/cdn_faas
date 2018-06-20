@@ -6,7 +6,11 @@ if ! [ -x "$(command -v docker)" ]; then
             exit 1
 fi
 
-echo "Building FaaS for File handling"
+echo "Building CDN Services and Origin"
+docker build -t s8sg/tiny-origin -f origin/Dockerfile origin
+
+
+echo "Building Functions"
 #docker build -t s8sg/file-handler file_handler/
 faas-cli build -f stack.yml
 
