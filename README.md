@@ -11,13 +11,11 @@ A PreConfigure stack that provides a overview of using FAAS in CDN
 >    $ ./deploy.sh
 >```
     
-> 4. Visit [`127.0.0.1:80`](http://127.0.0.1:80)
->    
-> upload a file (.png). Say monster.png 
+> 4. Visit [`127.0.0.1:80`](http://127.0.0.1:80)    
+>    upload a file (.png). Say `monster.png` 
      
-> 5. Visit ['127.0.0.1:80/assets/monster.png'](127.0.0.1:80/assets/monster.png)
->
-> the resized file will be available and cached for 10sec
+> 5. Visit ['127.0.0.1:80/assets/monster.png'](127.0.0.1:80/assets/monster.png)    
+>    the resized file will be available and cached for 10sec
     
 > 5. Teardown
 >```bash
