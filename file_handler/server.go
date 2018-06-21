@@ -135,7 +135,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("file is resized to %d from %d", resizedSize, originalSize)
 
-	w.Write([]byte("Resized file successfully uploaded to uploader"))
+	w.Write([]byte("Resized file '" + filename + "' successfully uploaded to uploader"))
 }
 
 func main() {

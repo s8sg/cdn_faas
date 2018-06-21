@@ -50,14 +50,14 @@ func uploadHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	io.Copy(f, file)
-	fi, err := f.Stat()
+	_, err = f.Stat()
 	if err != nil {
 		log.Printf("failed to get file stat, error %v", err)
 		http.Error(w, "{\"error\":\"Couldn't write file\"}", http.StatusInternalServerError)
 		f.Close()
 		return
 	} else {
-		log.Printf("file saved on the temp directory as %s filesize %d", filePath, fi.Size())
+		log.Printf("file '%s' saved to upload queue", filename)
 		f.Close()
 	}
 
@@ -142,7 +142,7 @@ func uploader() {
 		// read from channel
 		select {
 		case fileName := <-uploadQueue:
-			log.Printf("New file '%s' received to upload", fileName)
+			log.Printf("New file '%s' received to upload from queue", fileName)
 			err := uploadToStorage(fileName)
 			if err != nil {
 				log.Printf("failed to handle file '%s' upload, error %v", fileName, err)
@@ -150,7 +150,7 @@ func uploader() {
 				failedQueue <- fileName
 			} else {
 				log.Printf("successfully uploaded file '%s' to storage", fileName)
-				//remove(fileName)
+				remove(fileName)
 			}
 		case fileName := <-failedQueue:
 			log.Printf("Failed file '%s' received to retry", fileName)
