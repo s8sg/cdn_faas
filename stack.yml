@@ -18,3 +18,8 @@ functions:
     lang: dockerfile
     handler: ./file_uploader
     image: s8sg/file-uploader:latest
+
+  file-storage:
+    lang: dockerfile
+    handler: ./file_storage
+    image: s8sg/file-storage:latest

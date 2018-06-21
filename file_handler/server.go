@@ -15,7 +15,6 @@ const (
 	jsonType    = "application/json"
 	resizerURL  = "http://image-resizer:8080"
 	uploaderURL = "http://file-uploader:8080"
-	homeDIR     = "/home/app/"
 )
 
 var (
@@ -25,9 +24,10 @@ var (
 )
 
 // file upload logic
-func Upload(client *http.Client, url string, filename string, r io.Reader) (err error) {
+func upload(client *http.Client, url string, filename string, r io.Reader) (size int64, err error) {
 	// Prepare a form that you will submit to that URL.
 	var b bytes.Buffer
+
 	w := multipart.NewWriter(&b)
 
 	var fw io.Writer
@@ -39,13 +39,16 @@ func Upload(client *http.Client, url string, filename string, r io.Reader) (err 
 	if fw, err = w.CreateFormFile("file", filename); err != nil {
 		return
 	}
-	if _, err = io.Copy(fw, r); err != nil {
-		return err
+	if size, err = io.Copy(fw, r); err != nil {
+		return 0, err
 	}
 
 	// Don't forget to close the multipart writer.
 	// If you don't close it, your request will be missing the terminating boundary.
-	w.Close()
+	err = w.Close()
+	if err != nil {
+		return
+	}
 
 	// Now that you have a form, you can submit it to your handler.
 	req, err := http.NewRequest("POST", url, &b)
@@ -60,6 +63,7 @@ func Upload(client *http.Client, url string, filename string, r io.Reader) (err 
 	if err != nil {
 		return
 	}
+	defer res.Body.Close()
 
 	// Check the response
 	if res.StatusCode != http.StatusOK {
@@ -99,6 +103,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	originalSize := len(b)
+
 	// Try to Resize the file
 	client := &http.Client{}
 	req, _ := http.NewRequest("POST", resizerURL, bytes.NewBuffer(b))
@@ -120,12 +126,14 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	// send the file to file uploader
 	client = &http.Client{}
-	err = Upload(client, uploaderURL, filename, resp.Body)
+	resizedSize, err := upload(client, uploaderURL, filename, resp.Body)
 	if err != nil {
 		log.Printf("failed to send resized image to uploader, error %v", err)
 		http.Error(w, fmt.Sprintf("failed to upload file %s", filename), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("file is resized to %d from %d", resizedSize, originalSize)
 
 	w.Write([]byte("Resized file successfully uploaded to uploader"))
 }
