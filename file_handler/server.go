@@ -19,7 +19,11 @@ const (
 
 var (
 	validType = map[string]bool{
-		".png": true,
+		".png":  true,
+		".jpg":  true,
+		".gif":  true,
+		".jpeg": true,
+		".svg":  true,
 	}
 )
 
@@ -91,7 +95,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	if !validType[extn] {
 		log.Printf("invalid file type %s", extn)
-		http.Error(w, "Invalid file type, only .png is supported for now", http.StatusInternalServerError)
+		http.Error(w, "Invalid file type, supported formats are png, jpeg, jpg, svg and gif", http.StatusInternalServerError)
 		return
 	}
 
